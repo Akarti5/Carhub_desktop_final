@@ -33,6 +33,7 @@ com\carhub\entity\Client$CustomerType.class
 com\carhub\entity\Sale$PaymentStatus.class
 com\carhub\repository\CarRepository.class
 com\carhub\ui\dialogs\SaleDialog.class
+com\carhub\ui\panels\SalesPanel$6.class
 com\carhub\ui\dialogs\LoginDialog$2.class
 com\carhub\ui\panels\CarsPanel$2.class
 com\carhub\ui\panels\SalesPanel$3.class
@@ -57,6 +58,7 @@ com\carhub\ui\components\ModernTable.class
 com\carhub\ui\main\MainWindow$1.class
 com\carhub\repository\ClientRepository.class
 com\carhub\ui\components\ModernTextField$1.class
+com\carhub\ui\panels\SalesPanel$5.class
 com\carhub\ui\main\MainWindow.class
 com\carhub\entity\CarImage.class
 com\carhub\ui\components\ModernButton$1.class

@@ -101,7 +101,7 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
         totalCarsCard = new MetricCard("Total Cars", "0", "In inventory", true);
         totalSalesCard = new MetricCard("Total Sales", "0", "This month", true);
         totalClientsCard = new MetricCard("Total Clients", "0", "Active clients", true);
-        monthlyRevenueCard = new MetricCard("Monthly Revenue", "$0", "This month", true);
+        monthlyRevenueCard = new MetricCard("Monthly Revenue", "$0", "Last 6 months", true);
 
         metricsPanel.add(totalCarsCard);
         metricsPanel.add(totalSalesCard);

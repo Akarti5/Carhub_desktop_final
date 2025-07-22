@@ -23,6 +23,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.awt.Dialog;
 
+import com.toedter.calendar.JDateChooser;
+import java.util.Date;
+import java.time.ZoneId;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+
 public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
 
     private SaleService saleService;
@@ -33,6 +40,11 @@ public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
     private DefaultTableModel tableModel;
     private ModernTextField searchField;
     private JComboBox<String> statusFilter;
+
+    private JDateChooser fromDateChooser;
+    private JDateChooser toDateChooser;
+    private ModernButton filterByDateBtn;
+    private ModernButton clearDateFilterBtn;
 
     @Autowired
     private PdfService pdfService;
@@ -103,6 +115,23 @@ public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
         statusFilter.setForeground(Color.WHITE);
         statusFilter.addActionListener(e -> filterData());
 
+        // Date range filters
+        fromDateChooser = new JDateChooser();
+        fromDateChooser.setPreferredSize(new Dimension(120, 36));
+        fromDateChooser.setBackground(new Color(47, 51, 73));
+        fromDateChooser.setForeground(Color.WHITE);
+
+        toDateChooser = new JDateChooser();
+        toDateChooser.setPreferredSize(new Dimension(120, 36));
+        toDateChooser.setBackground(new Color(47, 51, 73));
+        toDateChooser.setForeground(Color.WHITE);
+
+        filterByDateBtn = new ModernButton("Filter by Date");
+        filterByDateBtn.addActionListener(e -> filterByDateRange());
+
+        clearDateFilterBtn = new ModernButton("Clear Date Filter");
+        clearDateFilterBtn.addActionListener(e -> clearDateFilter());
+
         ModernButton refreshBtn = new ModernButton("Refresh");
         refreshBtn.addActionListener(e -> loadData());
 
@@ -110,6 +139,12 @@ public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
         searchPanel.add(searchField);
         searchPanel.add(new JLabel("Status:") {{ setForeground(Color.WHITE); }});
         searchPanel.add(statusFilter);
+        searchPanel.add(new JLabel("From:") {{ setForeground(Color.WHITE); }});
+        searchPanel.add(fromDateChooser);
+        searchPanel.add(new JLabel("To:") {{ setForeground(Color.WHITE); }});
+        searchPanel.add(toDateChooser);
+        searchPanel.add(filterByDateBtn);
+        searchPanel.add(clearDateFilterBtn);
         searchPanel.add(refreshBtn);
 
         // Action buttons
@@ -213,6 +248,86 @@ public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void filterByDateRange() {
+        try {
+            Date fromDate = fromDateChooser.getDate();
+            Date toDate = toDateChooser.getDate();
+
+            if (fromDate == null || toDate == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Please select both From and To dates.",
+                        "Date Range Required",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (fromDate.after(toDate)) {
+                JOptionPane.showMessageDialog(this,
+                        "From date cannot be after To date.",
+                        "Invalid Date Range",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Convert Date to LocalDateTime
+            LocalDateTime startDateTime = fromDate.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime()
+                    .withHour(0).withMinute(0).withSecond(0);
+
+            LocalDateTime endDateTime = toDate.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime()
+                    .withHour(23).withMinute(59).withSecond(59);
+
+            // Get sales within date range
+            List<Sale> sales = saleService.findSalesByDateRange(startDateTime, endDateTime);
+
+            // Apply additional filters if any
+            String searchText = searchField.getText().trim();
+            String statusText = (String) statusFilter.getSelectedItem();
+
+            if (!searchText.isEmpty() || !"All Status".equals(statusText)) {
+                sales = sales.stream()
+                        .filter(sale -> {
+                            boolean matchesSearch = searchText.isEmpty() ||
+                                    sale.getInvoiceNumber().toLowerCase().contains(searchText.toLowerCase()) ||
+                                    sale.getCar().getDisplayName().toLowerCase().contains(searchText.toLowerCase()) ||
+                                    sale.getClient().getFullName().toLowerCase().contains(searchText.toLowerCase());
+
+                            boolean matchesStatus = "All Status".equals(statusText) ||
+                                    sale.getPaymentStatus().toString().equals(statusText);
+
+                            return matchesSearch && matchesStatus;
+                        })
+                        .toList();
+            }
+
+            updateTable(sales);
+
+            // Show results count
+            JOptionPane.showMessageDialog(this,
+                    "Found " + sales.size() + " sales between " +
+                            fromDate.toString().substring(0, 10) + " and " +
+                            toDate.toString().substring(0, 10),
+                    "Filter Results",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Error filtering by date range: " + e.getMessage(),
+                    "Filter Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void clearDateFilter() {
+        fromDateChooser.setDate(null);
+        toDateChooser.setDate(null);
+        loadData(); // Reload all data
     }
 
     private void updateTable(List<Sale> sales) {

@@ -81,7 +81,7 @@ public class NavigationPanel extends JPanel {
         profilePanel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 
         // Avatar (placeholder)
-        JLabel avatarLabel = new JLabel("");
+        JLabel avatarLabel = new JLabel("👤");
         avatarLabel.setFont(new Font("SF Pro Display", Font.PLAIN, 20));
         avatarLabel.setPreferredSize(new Dimension(40, 40));
         avatarLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -117,7 +117,7 @@ public class NavigationPanel extends JPanel {
     private JPanel createNavigationItem(String text, String icon, String action, boolean isSelected) {
         JPanel itemPanel = new JPanel(new BorderLayout());
         itemPanel.setBackground(isSelected ? ACTIVE_COLOR : BACKGROUND_COLOR);
-        itemPanel.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+        itemPanel.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         itemPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Icon
