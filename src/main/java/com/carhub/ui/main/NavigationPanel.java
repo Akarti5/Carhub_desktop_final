@@ -28,7 +28,7 @@ public class NavigationPanel extends JPanel {
 
     private void setupPanel() {
         setBackground(BACKGROUND_COLOR);
-        setPreferredSize(new Dimension(280, 0));
+        setPreferredSize(new Dimension(220, 0)); // Reduced width for a more compact sidebar
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(55, 65, 81)));
     }
@@ -67,58 +67,25 @@ public class NavigationPanel extends JPanel {
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setBackground(BACKGROUND_COLOR);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
-
-        // App logo/title
-        JLabel logoLabel = new JLabel("CarHub");
-        logoLabel.setFont(new Font("SF Pro Display", Font.BOLD, 24));
-        logoLabel.setForeground(ACCENT_COLOR);
-        logoLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-
-        // User profile section
-        JPanel profilePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 8));
-        profilePanel.setBackground(BACKGROUND_COLOR);
-        profilePanel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-
-        // Avatar (placeholder)
-        JLabel avatarLabel = new JLabel("👤");
-        avatarLabel.setFont(new Font("SF Pro Display", Font.PLAIN, 20));
-        avatarLabel.setPreferredSize(new Dimension(40, 40));
-        avatarLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        avatarLabel.setBorder(BorderFactory.createLineBorder(new Color(55, 65, 81), 1));
-
-        // User info
-        JPanel userInfoPanel = new JPanel();
-        userInfoPanel.setLayout(new BoxLayout(userInfoPanel, BoxLayout.Y_AXIS));
-        userInfoPanel.setBackground(BACKGROUND_COLOR);
-
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        
+        // Only show the user's name without icon
         JLabel nameLabel = new JLabel(currentAdmin.getFullName());
         nameLabel.setFont(new Font("SF Pro Text", Font.BOLD, 14));
         nameLabel.setForeground(TEXT_COLOR);
-
-        JLabel roleLabel = new JLabel(currentAdmin.getRole().toString());
-        roleLabel.setFont(new Font("SF Pro Text", Font.PLAIN, 12));
-        roleLabel.setForeground(new Color(161, 161, 170));
-
-        userInfoPanel.add(nameLabel);
-        userInfoPanel.add(roleLabel);
-
-        profilePanel.add(avatarLabel);
-        profilePanel.add(Box.createHorizontalStrut(12));
-        profilePanel.add(userInfoPanel);
-
-        headerPanel.add(logoLabel);
-        headerPanel.add(Box.createVerticalStrut(16));
-        headerPanel.add(profilePanel);
-
+        nameLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        
+        headerPanel.add(nameLabel);
+        
         return headerPanel;
     }
 
     private JPanel createNavigationItem(String text, String icon, String action, boolean isSelected) {
         JPanel itemPanel = new JPanel(new BorderLayout());
         itemPanel.setBackground(isSelected ? ACTIVE_COLOR : BACKGROUND_COLOR);
-        itemPanel.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        itemPanel.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 16)); // Reduced vertical padding
         itemPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        itemPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40)); // Fixed height for all items
 
         // Icon
         JLabel iconLabel = new JLabel(icon);

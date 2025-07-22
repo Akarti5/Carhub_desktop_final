@@ -49,20 +49,47 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
     }
 
     private void createComponents() {
-        JPanel mainPanel = new JPanel(new BorderLayout(24, 24));
-        mainPanel.setOpaque(false);
-
-        // Header
+        // Create a vertical box layout for the main content
+        JPanel mainContent = new JPanel();
+        mainContent.setLayout(new BoxLayout(mainContent, BoxLayout.Y_AXIS));
+        mainContent.setOpaque(false);
+        
+        // Add a small gap at the top
+        mainContent.add(Box.createVerticalStrut(8));
+        
+        // Header - don't let it take too much space
         JPanel headerPanel = createHeaderPanel();
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-
-        // Metrics cards
+        headerPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        mainContent.add(headerPanel);
+        
+        // Add a small gap
+        mainContent.add(Box.createVerticalStrut(8));
+        
+        // Metrics cards - fixed height
         JPanel metricsPanel = createMetricsPanel();
-        mainPanel.add(metricsPanel, BorderLayout.CENTER);
-
-        // Tables panel
+        metricsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        mainContent.add(metricsPanel);
+        
+        // Add a small gap
+        mainContent.add(Box.createVerticalStrut(16));
+        
+        // Tables panel - takes remaining space
         JPanel tablesPanel = createTablesPanel();
-        mainPanel.add(tablesPanel, BorderLayout.SOUTH);
+        tablesPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        
+        // Use a scroll pane for the tables if needed
+        JScrollPane scrollPane = new JScrollPane(tablesPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setOpaque(false);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        
+        mainContent.add(scrollPane);
+        
+        // Add everything to the main panel with BorderLayout
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setOpaque(false);
+        mainPanel.add(mainContent, BorderLayout.CENTER);
 
         add(mainPanel, BorderLayout.CENTER);
     }
@@ -93,9 +120,10 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
     }
 
     private JPanel createMetricsPanel() {
-        JPanel metricsPanel = new JPanel(new GridLayout(1, 4, 16, 0));
+        JPanel metricsPanel = new JPanel(new GridLayout(1, 4, 8, 0)); // Reduced horizontal gap between cards
         metricsPanel.setOpaque(false);
-        metricsPanel.setPreferredSize(new Dimension(0, 120));
+        metricsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90)); // Set maximum height
+        metricsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0)); // Add small bottom padding
 
         // Create metric cards with 4 parameters (title, value, subtitle, isPositive)
         totalCarsCard = new MetricCard("Total Cars", "0", "In inventory", true);
@@ -112,32 +140,51 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
     }
 
     private JPanel createTablesPanel() {
-        JPanel tablesPanel = new JPanel(new GridLayout(1, 2, 16, 0));
+        JPanel tablesPanel = new JPanel(new GridLayout(1, 2, 8, 0)); // Reduced gap between tables
         tablesPanel.setOpaque(false);
-        tablesPanel.setPreferredSize(new Dimension(0, 300));
+        
+        // Set a fixed height for the tables panel
+        int tableHeight = 200; // Reduced from 300
+        tablesPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, tableHeight));
 
         // Recent Sales Table
-        JPanel recentSalesPanel = createTablePanel("Recent Sales", createRecentSalesTable());
-        tablesPanel.add(recentSalesPanel);
-
+        JScrollPane recentSalesScroll = createRecentSalesTable();
+        recentSalesScroll.setPreferredSize(new Dimension(0, tableHeight - 20)); // Account for panel padding
+        JPanel recentSalesPanel = createTablePanel("Recent Sales", recentSalesScroll);
+        
         // Low Inventory Table
-        JPanel lowInventoryPanel = createTablePanel("Low Inventory Alert", createLowInventoryTable());
+        JScrollPane lowInventoryScroll = createLowInventoryTable();
+        lowInventoryScroll.setPreferredSize(new Dimension(0, tableHeight - 20)); // Account for panel padding
+        JPanel lowInventoryPanel = createTablePanel("Low Inventory Alert", lowInventoryScroll);
+        
+        tablesPanel.add(recentSalesPanel);
         tablesPanel.add(lowInventoryPanel);
 
         return tablesPanel;
     }
 
     private JPanel createTablePanel(String title, JScrollPane tableScrollPane) {
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout(0, 8)); // Reduced vertical gap
         panel.setBackground(new Color(42, 45, 53));
-        panel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12)); // Reduced padding
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("SF Pro Display", Font.BOLD, 18));
+        titleLabel.setFont(new Font("SF Pro Display", Font.BOLD, 16)); // Slightly smaller font
         titleLabel.setForeground(Color.WHITE);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
 
         panel.add(titleLabel, BorderLayout.NORTH);
+        
+        // Make sure the table takes up the remaining space
+        tableScrollPane.setBorder(null);
+        tableScrollPane.setOpaque(false);
+        tableScrollPane.getViewport().setOpaque(false);
+        
+        // Style the table header
+        JTable table = (JTable) tableScrollPane.getViewport().getView();
+        table.setRowHeight(28); // Slightly smaller row height
+        table.setShowGrid(false);
+        table.setIntercellSpacing(new Dimension(0, 0));
+        
         panel.add(tableScrollPane, BorderLayout.CENTER);
 
         return panel;
