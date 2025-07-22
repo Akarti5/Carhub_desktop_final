@@ -3,6 +3,7 @@ package com.carhub.service;
 import com.carhub.entity.Car;
 import com.carhub.entity.Client;
 import com.carhub.entity.Sale;
+import com.carhub.util.CurrencyUtils;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -175,7 +176,7 @@ public class PdfService {
         addSummaryRow(summaryTable, "Total Cars:", String.valueOf(totalCars));
         addSummaryRow(summaryTable, "Available Cars:", String.valueOf(availableCars));
         addSummaryRow(summaryTable, "Sold Cars:", String.valueOf(soldCars));
-        addSummaryRow(summaryTable, "Total Inventory Value:", NumberFormat.getCurrencyInstance().format(totalValue));
+        addSummaryRow(summaryTable, "Total Inventory Value:", CurrencyUtils.formatCurrency(totalValue));
 
         document.add(summaryTable);
         document.add(new Paragraph("\n"));
@@ -199,8 +200,8 @@ public class PdfService {
         summaryTable.setWidth(UnitValue.createPercentValue(50));
 
         addSummaryRow(summaryTable, "Total Sales:", String.valueOf(totalSales));
-        addSummaryRow(summaryTable, "Total Revenue:", NumberFormat.getCurrencyInstance().format(totalRevenue));
-        addSummaryRow(summaryTable, "Total Profit:", NumberFormat.getCurrencyInstance().format(totalProfit));
+        addSummaryRow(summaryTable, "Total Revenue:", CurrencyUtils.formatCurrency(totalRevenue));
+        addSummaryRow(summaryTable, "Total Profit:", CurrencyUtils.formatCurrency(totalProfit));
 
         document.add(summaryTable);
         document.add(new Paragraph("\n"));
@@ -251,14 +252,13 @@ public class PdfService {
         table.addHeaderCell(new Cell().add(new Paragraph("Status").setFont(boldFont)).setBackgroundColor(ColorConstants.LIGHT_GRAY));
 
         // Data rows
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
         for (Car car : cars) {
             table.addCell(new Cell().add(new Paragraph(String.valueOf(car.getId()))));
             table.addCell(new Cell().add(new Paragraph(car.getBrand())));
             table.addCell(new Cell().add(new Paragraph(car.getModel())));
             table.addCell(new Cell().add(new Paragraph(String.valueOf(car.getYear()))));
             table.addCell(new Cell().add(new Paragraph(car.getColor() != null ? car.getColor() : "N/A")));
-            table.addCell(new Cell().add(new Paragraph(currencyFormat.format(car.getPrice()))));
+            table.addCell(new Cell().add(new Paragraph(CurrencyUtils.formatCurrency(car.getPrice()))));
             table.addCell(new Cell().add(new Paragraph(car.getStatus().toString())));
         }
 
@@ -283,7 +283,6 @@ public class PdfService {
         table.addHeaderCell(new Cell().add(new Paragraph("Status").setFont(boldFont)).setBackgroundColor(ColorConstants.LIGHT_GRAY));
 
         // Data rows
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
 
         for (Sale sale : sales) {
@@ -292,7 +291,7 @@ public class PdfService {
             table.addCell(new Cell().add(new Paragraph(sale.getSaleDate().format(dateFormatter))));
             table.addCell(new Cell().add(new Paragraph(sale.getCar().getDisplayName())));
             table.addCell(new Cell().add(new Paragraph(sale.getClient().getFullName())));
-            table.addCell(new Cell().add(new Paragraph(currencyFormat.format(sale.getTotalAmount()))));
+            table.addCell(new Cell().add(new Paragraph(CurrencyUtils.formatCurrency(sale.getTotalAmount()))));
             table.addCell(new Cell().add(new Paragraph(sale.getPaymentStatus().toString())));
         }
 
@@ -387,11 +386,10 @@ public class PdfService {
         itemsTable.addHeaderCell(new Cell().add(new Paragraph("Total").setFont(boldFont)).setBackgroundColor(ColorConstants.LIGHT_GRAY));
 
         // Car item
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
         itemsTable.addCell(new Cell().add(new Paragraph(sale.getCar().getDisplayName())));
         itemsTable.addCell(new Cell().add(new Paragraph("1")));
-        itemsTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(sale.getSalePrice()))));
-        itemsTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(sale.getSalePrice()))));
+        itemsTable.addCell(new Cell().add(new Paragraph(CurrencyUtils.formatCurrency(sale.getSalePrice()))));
+        itemsTable.addCell(new Cell().add(new Paragraph(CurrencyUtils.formatCurrency(sale.getSalePrice()))));
 
         document.add(itemsTable);
         document.add(new Paragraph("\n"));
@@ -402,20 +400,20 @@ public class PdfService {
         totalsTable.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.RIGHT);
 
         totalsTable.addCell(new Cell().add(new Paragraph("Subtotal:").setFont(boldFont)).setBorder(null));
-        totalsTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(sale.getSalePrice()))).setBorder(null));
+        totalsTable.addCell(new Cell().add(new Paragraph(CurrencyUtils.formatCurrency(sale.getSalePrice()))).setBorder(null));
 
         if (sale.getDiscountAmount() != null && sale.getDiscountAmount().compareTo(BigDecimal.ZERO) > 0) {
             totalsTable.addCell(new Cell().add(new Paragraph("Discount:").setFont(boldFont)).setBorder(null));
-            totalsTable.addCell(new Cell().add(new Paragraph("-" + currencyFormat.format(sale.getDiscountAmount()))).setBorder(null));
+            totalsTable.addCell(new Cell().add(new Paragraph("-" + CurrencyUtils.formatCurrency(sale.getDiscountAmount()))).setBorder(null));
         }
 
         if (sale.getTaxAmount() != null && sale.getTaxAmount().compareTo(BigDecimal.ZERO) > 0) {
             totalsTable.addCell(new Cell().add(new Paragraph("Tax:").setFont(boldFont)).setBorder(null));
-            totalsTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(sale.getTaxAmount()))).setBorder(null));
+            totalsTable.addCell(new Cell().add(new Paragraph(CurrencyUtils.formatCurrency(sale.getTaxAmount()))).setBorder(null));
         }
 
         totalsTable.addCell(new Cell().add(new Paragraph("Total:").setFont(boldFont).setFontSize(14)).setBorder(null));
-        totalsTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(sale.getTotalAmount())).setFont(boldFont).setFontSize(14)).setBorder(null));
+        totalsTable.addCell(new Cell().add(new Paragraph(CurrencyUtils.formatCurrency(sale.getTotalAmount())).setFont(boldFont).setFontSize(14)).setBorder(null));
 
         document.add(totalsTable);
     }
@@ -447,9 +445,137 @@ public class PdfService {
                 .setFontColor(ColorConstants.GRAY));
     }
 
+    public String generateInvoice(Sale sale, String outputPath) throws Exception {
+        String fileName = outputPath + "/facture_" + sale.getInvoiceNumber() + "_" + System.currentTimeMillis() + ".pdf";
+
+        PdfWriter writer = new PdfWriter(fileName);
+        PdfDocument pdf = new PdfDocument(writer);
+        Document document = new Document(pdf);
+
+        try {
+            // Invoice Header
+            Paragraph header = new Paragraph("FACTURE N°" + sale.getInvoiceNumber())
+                    .setFontSize(16)
+                    .setBold()
+                    .setTextAlignment(TextAlignment.CENTER);
+            document.add(header);
+            document.add(new Paragraph("\n"));
+
+            // Company Info (right aligned)
+            Paragraph companyInfo = new Paragraph()
+                    .add(COMPANY_NAME + "\n")
+                    .add(COMPANY_ADDRESS + "\n")
+                    .add("Tél: " + COMPANY_PHONE + "\n")
+                    .add("Email: " + COMPANY_EMAIL)
+                    .setTextAlignment(TextAlignment.RIGHT);
+            document.add(companyInfo);
+            document.add(new Paragraph("\n\n"));
+
+            // Client Info (left aligned)
+            Paragraph clientInfo = new Paragraph()
+                    .add("Date de facturation: " + 
+                         sale.getSaleDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n")
+                    .add("Nom du client: " + sale.getClient().getFullName() + "\n")
+                    .add("Contact: " + sale.getClient().getPhoneNumber())
+                    .setTextAlignment(TextAlignment.LEFT);
+            document.add(clientInfo);
+            document.add(new Paragraph("\n\n"));
+
+            // Items Table
+            float[] columnWidths = {10, 3, 4};
+            Table table = new Table(columnWidths);
+            
+            // Table Header
+            table.addHeaderCell(new Cell().add(new Paragraph("Désignation").setBold()));
+            table.addHeaderCell(new Cell().add(new Paragraph("Quantité").setBold()));
+            table.addHeaderCell(new Cell().add(new Paragraph("Prix").setBold()));
+            
+            // Table Rows
+            table.addCell(new Cell().add(new Paragraph(sale.getCar().getDisplayName())));
+            table.addCell(new Cell().add(new Paragraph("1")).setTextAlignment(TextAlignment.CENTER));
+            table.addCell(new Cell().add(new Paragraph(CurrencyUtils.formatCurrency(sale.getSalePrice())))
+                    .setTextAlignment(TextAlignment.RIGHT));
+            
+            document.add(table);
+            document.add(new Paragraph("\n\n"));
+            
+            // Total
+            Paragraph total = new Paragraph()
+                    .add("Total: " + CurrencyUtils.formatCurrency(sale.getTotalAmount()))
+                    .setTextAlignment(TextAlignment.RIGHT);
+            document.add(total);
+            
+            // Amount in words
+            String amountInWords = convertToWords(sale.getTotalAmount().intValue()) + " ariary";
+            Paragraph amountWords = new Paragraph("\n" + 
+                    "Arrêté par la présente facture à la somme de: " + amountInWords)
+                    .setItalic();
+            document.add(amountWords);
+            
+            // Footer
+            document.add(new Paragraph("\n\n\n"));
+            Paragraph footer = new Paragraph("Merci pour votre confiance!")
+                    .setTextAlignment(TextAlignment.CENTER);
+            document.add(footer);
+            
+            return fileName;
+        } finally {
+            document.close();
+        }
+    }
+    
+    // Helper method to convert number to words in French
+    private String convertToWords(int number) {
+        if (number == 0) {
+            return "zéro";
+        }
+        
+        String[] units = {"", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix",
+                "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf"};
+        String[] tens = {"", "dix", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante-dix", "quatre-vingt", "quatre-vingt-dix"};
+        
+        if (number < 20) {
+            return units[number];
+        }
+        
+        if (number < 100) {
+            if (number % 10 == 0) {
+                return tens[number / 10];
+            } else if (number < 70 || (number > 79 && number < 90)) {
+                return tens[number / 10] + "-" + units[number % 10];
+            } else if (number < 80) {
+                return "soixante-et-onze";
+            } else {
+                return tens[number / 10] + "-" + units[number % 10];
+            }
+        }
+        
+        if (number < 1000) {
+            if (number % 100 == 0) {
+                return units[number / 100] + " cent";
+            } else {
+                return units[number / 100] + " cent " + convertToWords(number % 100);
+            }
+        }
+        
+        if (number < 1000000) {
+            if (number % 1000 == 0) {
+                return convertToWords(number / 1000) + " mille";
+            } else {
+                return convertToWords(number / 1000) + " mille " + convertToWords(number % 1000);
+            }
+        }
+        
+        if (number % 1000000 == 0) {
+            return convertToWords(number / 1000000) + " million";
+        } else {
+            return convertToWords(number / 1000000) + " million " + convertToWords(number % 1000000);
+        }
+    }
+
     public String getDefaultOutputPath() {
         String userHome = System.getProperty("user.home");
-        String outputDir = userHome + File.separator + "CarHub_Reports";
+        String outputDir = userHome + File.separator + "CarHub_Factures";
 
         File dir = new File(outputDir);
         if (!dir.exists()) {

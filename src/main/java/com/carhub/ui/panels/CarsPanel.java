@@ -16,7 +16,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.text.NumberFormat;
+import com.carhub.util.CurrencyUtils;
 import java.util.List;
 
 public class CarsPanel extends JPanel implements MainWindow.RefreshablePanel {
@@ -209,7 +209,6 @@ public class CarsPanel extends JPanel implements MainWindow.RefreshablePanel {
 
     private void updateTable(List<Car> cars) {
         tableModel.setRowCount(0);
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
 
         for (Car car : cars) {
             Object[] row = {
@@ -218,7 +217,7 @@ public class CarsPanel extends JPanel implements MainWindow.RefreshablePanel {
                     car.getModel(),
                     car.getYear(),
                     car.getColor() != null ? car.getColor() : "N/A",
-                    currencyFormat.format(car.getPrice()),
+                    CurrencyUtils.formatCurrency(car.getPrice()),
                     car.getStatus().toString(),
                     car.getDaysInStock() + " days"
             };

@@ -18,7 +18,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.text.NumberFormat;
+import com.carhub.util.CurrencyUtils;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.awt.Dialog;
@@ -28,6 +28,7 @@ import java.util.Date;
 import java.time.ZoneId;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.io.File;
 
 
 public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
@@ -46,13 +47,14 @@ public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
     private ModernButton filterByDateBtn;
     private ModernButton clearDateFilterBtn;
 
-    @Autowired
-    private PdfService pdfService;
+    private final PdfService pdfService;
 
-    public SalesPanel(SaleService saleService, CarService carService, ClientService clientService, Admin currentAdmin) {
+    @Autowired
+    public SalesPanel(SaleService saleService, CarService carService, ClientService clientService, PdfService pdfService, Admin currentAdmin) {
         this.saleService = saleService;
         this.carService = carService;
         this.clientService = clientService;
+        this.pdfService = pdfService;
         this.currentAdmin = currentAdmin;
 
         setupPanel();
@@ -333,7 +335,6 @@ public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
     private void updateTable(List<Sale> sales) {
         tableModel.setRowCount(0);
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
 
         for (Sale sale : sales) {
             Object[] row = {
@@ -342,7 +343,7 @@ public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
                     sale.getSaleDate().format(dateFormatter),
                     sale.getCar().getDisplayName(),
                     sale.getClient().getFullName(),
-                    currencyFormat.format(sale.getTotalAmount()),
+                    CurrencyUtils.formatCurrency(sale.getTotalAmount()),
                     sale.getPaymentMethod().toString(),
                     sale.getPaymentStatus().toString()
             };
@@ -444,10 +445,14 @@ public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
     }
 
     private void showSaleDetailsDialog(Sale sale) {
-        JDialog detailsDialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Sale Details", Dialog.ModalityType.APPLICATION_MODAL);
-        detailsDialog.setSize(500, 600);
+        JDialog detailsDialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Détails de la vente", Dialog.ModalityType.APPLICATION_MODAL);
+        detailsDialog.setSize(500, 650);
         detailsDialog.setLocationRelativeTo(this);
         detailsDialog.getContentPane().setBackground(new Color(26, 28, 32));
+
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(new Color(26, 28, 32));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
@@ -455,76 +460,206 @@ public class SalesPanel extends JPanel implements MainWindow.RefreshablePanel {
         contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Add sale details
-        addDetailRow(contentPanel, "Invoice Number:", sale.getInvoiceNumber());
-        addDetailRow(contentPanel, "Sale Date:", sale.getSaleDate().format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")));
-        addDetailRow(contentPanel, "Car:", sale.getCar().getDisplayName());
+        addDetailRow(contentPanel, "Numéro de facture:", sale.getInvoiceNumber());
+        addDetailRow(contentPanel, "Date de vente:", sale.getSaleDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        addDetailRow(contentPanel, "Véhicule:", sale.getCar().getDisplayName());
         addDetailRow(contentPanel, "Client:", sale.getClient().getFullName());
-        addDetailRow(contentPanel, "Sale Price:", NumberFormat.getCurrencyInstance().format(sale.getSalePrice()));
-        addDetailRow(contentPanel, "Payment Method:", sale.getPaymentMethod().toString());
-        addDetailRow(contentPanel, "Payment Status:", sale.getPaymentStatus().toString());
-        addDetailRow(contentPanel, "Total Amount:", NumberFormat.getCurrencyInstance().format(sale.getTotalAmount()));
-        addDetailRow(contentPanel, "Sold By:", sale.getAdmin().getFullName());
+        addDetailRow(contentPanel, "Prix de vente:", CurrencyUtils.formatCurrency(sale.getSalePrice()));
+        addDetailRow(contentPanel, "Acompte:", CurrencyUtils.formatCurrency(sale.getDownPayment()));
+        addDetailRow(contentPanel, "Montant total:", CurrencyUtils.formatCurrency(sale.getTotalAmount()));
+        addDetailRow(contentPanel, "Vendu par:", sale.getAdmin().getFullName());
 
         if (sale.getNotes() != null && !sale.getNotes().isEmpty()) {
-            addDetailRow(contentPanel, "Notes:", sale.getNotes());
+            addDetailRow(contentPanel, "Remarques:", sale.getNotes());
         }
 
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.setBorder(null);
-        detailsDialog.add(scrollPane);
+        scrollPane.getViewport().setBackground(new Color(26, 28, 32));
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
 
+        // Add button panel at the bottom
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(new Color(26, 28, 32));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        ModernButton printButton = new ModernButton("Générer Facture");
+        printButton.setBackground(new Color(59, 130, 246));
+        printButton.setForeground(Color.WHITE);
+        printButton.addActionListener(e -> generateInvoicePdf(sale));
+
+        ModernButton closeButton = new ModernButton("Fermer");
+        closeButton.setBackground(new Color(100, 116, 139));
+        closeButton.setForeground(Color.WHITE);
+        closeButton.addActionListener(e -> detailsDialog.dispose());
+
+        buttonPanel.add(printButton);
+        buttonPanel.add(Box.createHorizontalStrut(10));
+        buttonPanel.add(closeButton);
+
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        detailsDialog.add(mainPanel);
+
+        // Center the dialog on the screen
+        detailsDialog.setLocationRelativeTo(null);
         detailsDialog.setVisible(true);
     }
 
     private void addDetailRow(JPanel parent, String label, String value) {
         JPanel row = new JPanel(new BorderLayout());
         row.setOpaque(false);
-        row.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        row.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
 
         JLabel labelComp = new JLabel(label);
         labelComp.setFont(new Font("SF Pro Text", Font.BOLD, 14));
         labelComp.setForeground(new Color(161, 161, 170));
-        labelComp.setPreferredSize(new Dimension(120, 20));
+        labelComp.setPreferredSize(new Dimension(150, 20));
 
         JLabel valueComp = new JLabel(value);
         valueComp.setFont(new Font("SF Pro Text", Font.PLAIN, 14));
         valueComp.setForeground(Color.WHITE);
 
+        // Add some spacing between label and value
+        row.add(Box.createHorizontalStrut(10), BorderLayout.WEST);
         row.add(labelComp, BorderLayout.WEST);
-        row.add(valueComp, BorderLayout.CENTER);
+        row.add(Box.createHorizontalStrut(20), BorderLayout.CENTER);
+        row.add(valueComp, BorderLayout.EAST);
+        row.add(Box.createHorizontalStrut(10), BorderLayout.EAST);
 
         parent.add(row);
     }
 
+    private void generateInvoicePdf(Sale sale) {
+        try {
+            // Show confirmation dialog
+            int option = JOptionPane.showConfirmDialog(
+                this,
+                "Voulez-vous générer une facture PDF pour cette vente ?",
+                "Générer une facture",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (option == JOptionPane.YES_OPTION) {
+                // Show progress dialog
+                JDialog progressDialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Génération de la facture", Dialog.ModalityType.APPLICATION_MODAL);
+                progressDialog.setSize(300, 100);
+                progressDialog.setLocationRelativeTo(this);
+                progressDialog.setLayout(new BorderLayout());
+                
+                JLabel progressLabel = new JLabel("Génération de la facture en cours...");
+                progressLabel.setHorizontalAlignment(JLabel.CENTER);
+                progressDialog.add(progressLabel, BorderLayout.CENTER);
+                
+                // Show the progress dialog in a separate thread to keep the UI responsive
+                new Thread(() -> {
+                    try {
+                        String outputPath = pdfService.getDefaultOutputPath();
+                        String filePath = pdfService.generateInvoice(sale, outputPath);
+                        
+                        // Close the progress dialog in the Event Dispatch Thread
+                        SwingUtilities.invokeLater(() -> {
+                            progressDialog.dispose();
+                            
+                            // Show success message with option to open the file
+                            Object[] options = {"Ouvrir le dossier", "OK"};
+                            int choice = JOptionPane.showOptionDialog(
+                                this,
+                                "La facture a été générée avec succès.\nEmplacement: " + filePath,
+                                "Facture générée",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.INFORMATION_MESSAGE,
+                                null,
+                                options,
+                                options[0]
+                            );
+                            
+                            if (choice == 0) { // User clicked "Open Folder"
+                                try {
+                                    File file = new File(filePath);
+                                    Desktop.getDesktop().open(file.getParentFile());
+                                } catch (Exception ex) {
+                                    JOptionPane.showMessageDialog(
+                                        this,
+                                        "Impossible d'ouvrir le dossier: " + ex.getMessage(),
+                                        "Erreur",
+                                        JOptionPane.ERROR_MESSAGE
+                                    );
+                                }
+                            }
+                        });
+                    } catch (Exception ex) {
+                        // Show error message in the Event Dispatch Thread
+                        SwingUtilities.invokeLater(() -> {
+                            progressDialog.dispose();
+                            JOptionPane.showMessageDialog(
+                                this,
+                                "Erreur lors de la génération de la facture: " + ex.getMessage(),
+                                "Erreur",
+                                JOptionPane.ERROR_MESSAGE
+                            );
+                        });
+                    }
+                }).start();
+                
+                progressDialog.setVisible(true);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(
+                this,
+                "Erreur inattendue: " + ex.getMessage(),
+                "Erreur",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
     private void exportToPdf() {
         try {
-            List<Sale> sales = saleService.getAllSales();
+            // Show information about what will be included in the PDF
+            JOptionPane.showMessageDialog(this,
+                    "This will generate a PDF report containing:\n" +
+                    "- Complete sales report\n" +
+                    "- Sales summary and statistics\n" +
+                    "- Individual sale details\n" +
+                    "- Professional formatted report",
+                    "PDF Export",
+                    JOptionPane.INFORMATION_MESSAGE);
 
-            if (pdfService == null) {
+            // Get all sales data
+            List<Sale> sales = saleService.getAllSales();
+            
+            if (sales == null || sales.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
-                        "PDF export functionality will generate:\n" +
-                                "- Complete sales report\n" +
-                                "- Sales summary and statistics\n" +
-                                "- Individual sale details\n" +
-                                "- Professional formatted report",
-                        "PDF Export",
+                        "No sales data available to export.",
+                        "No Data",
                         JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
+            // Get the output directory and generate the report
             String outputPath = pdfService.getDefaultOutputPath();
             String fileName = pdfService.generateSalesReport(sales, outputPath);
 
+            // Show success message with option to open the file location
             int option = JOptionPane.showConfirmDialog(this,
                     "Sales report generated successfully!\n" +
-                            "File: " + fileName + "\n\n" +
-                            "Would you like to open the file location?",
+                    "File: " + fileName + "\n\n" +
+                    "Would you like to open the file location?",
                     "Export Successful",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.INFORMATION_MESSAGE);
 
             if (option == JOptionPane.YES_OPTION) {
-                Desktop.getDesktop().open(new java.io.File(outputPath));
+                try {
+                    Desktop.getDesktop().open(new java.io.File(outputPath));
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "Could not open file location. The file was saved to:\n" + fileName,
+                            "Open Location Failed",
+                            JOptionPane.WARNING_MESSAGE);
+                }
             }
 
         } catch (Exception e) {

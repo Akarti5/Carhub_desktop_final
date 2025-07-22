@@ -31,6 +31,9 @@ public class MainWindow extends JFrame {
 
     @Autowired
     private SystemSettingService systemSettingService;
+    
+    @Autowired
+    private PdfService pdfService;
 
     private Admin currentAdmin;
     private NavigationPanel navigationPanel;
@@ -98,7 +101,7 @@ public class MainWindow extends JFrame {
         // Create panels
         dashboardPanel = new DashboardPanel(carService, saleService, clientService);
         carsPanel = new CarsPanel(carService, currentAdmin);
-        salesPanel = new SalesPanel(saleService, carService, clientService, currentAdmin);
+        salesPanel = new SalesPanel(saleService, carService, clientService, pdfService, currentAdmin);
         clientsPanel = new ClientsPanel(clientService, currentAdmin);
         reportsPanel = new ReportsPanel(saleService, carService, clientService);
         settingsPanel = new SettingsPanel(systemSettingService, adminService, currentAdmin);

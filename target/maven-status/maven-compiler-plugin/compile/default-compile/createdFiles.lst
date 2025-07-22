@@ -71,6 +71,7 @@ com\carhub\ui\panels\SettingsPanel.class
 com\carhub\ui\components\ModernCard.class
 com\carhub\ui\panels\CarsPanel$4.class
 com\carhub\ui\panels\SalesPanel$1.class
+com\carhub\util\CurrencyUtils.class
 com\carhub\entity\Admin$Role.class
 com\carhub\ui\panels\DashboardPanel$1.class
 com\carhub\ui\panels\CarsPanel.class

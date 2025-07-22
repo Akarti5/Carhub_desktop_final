@@ -13,7 +13,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
-import java.text.NumberFormat;
+import com.carhub.util.CurrencyUtils;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -191,7 +191,7 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
             totalCarsCard.updateValue(String.valueOf(totalCars));
             totalSalesCard.updateValue(String.valueOf(totalSales));
             totalClientsCard.updateValue(String.valueOf(totalClients));
-            monthlyRevenueCard.updateValue(NumberFormat.getCurrencyInstance().format(monthlyRevenue));
+            monthlyRevenueCard.updateValue(CurrencyUtils.formatCurrency(monthlyRevenue));
 
             // Load recent sales
             loadRecentSales();
@@ -213,14 +213,12 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
             model.setRowCount(0);
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
-            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
-
             for (Sale sale : recentSales) {
                 Object[] row = {
                         sale.getSaleDate().format(formatter),
                         sale.getCar().getMake() + " " + sale.getCar().getModel(),
                         sale.getClient().getFullName(),
-                        currencyFormat.format(sale.getTotalAmount())
+                        CurrencyUtils.formatCurrency(sale.getTotalAmount())
                 };
                 model.addRow(row);
             }
