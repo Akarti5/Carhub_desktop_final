@@ -2,8 +2,7 @@ package com.carhub.ui.dialogs;
 
 import com.carhub.entity.Admin;
 import com.carhub.service.AdminService;
-import com.carhub.ui.components.ModernButton;
-import com.carhub.ui.components.ModernTextField;
+import com.carhub.ui.components.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +17,7 @@ public class LoginDialog extends JDialog {
     private boolean loginSuccessful = false;
 
     private ModernTextField usernameField;
-    private JPasswordField passwordField;
+    private ModernPasswordField passwordField;
     private ModernButton loginButton;
     private ModernButton cancelButton;
 
@@ -31,7 +30,7 @@ public class LoginDialog extends JDialog {
     }
 
     private void setupDialog() {
-        setSize(400, 300);
+        setSize(450, 450); // Increased height to accommodate all elements
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -66,10 +65,10 @@ public class LoginDialog extends JDialog {
         // Form
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(new Color(26, 28, 32));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(16, 40, 16, 40)); // Adjusted padding
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(4, 4, 16, 4); // Reduced vertical insets between fields
         gbc.anchor = GridBagConstraints.WEST;
 
         // Username
@@ -98,24 +97,16 @@ public class LoginDialog extends JDialog {
         gbc.gridx = 0; gbc.gridy = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
-        passwordField = new JPasswordField();
-        passwordField.setBackground(new Color(47, 51, 73));
-        passwordField.setForeground(Color.WHITE);
-        passwordField.setCaretColor(Color.WHITE);
-        passwordField.setFont(new Font("SF Pro Text", Font.PLAIN, 14));
-        passwordField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(55, 65, 81)),
-                BorderFactory.createEmptyBorder(8, 12, 8, 12)
-        ));
+        passwordField = new ModernPasswordField("Enter password");
         passwordField.setPreferredSize(new Dimension(250, 36));
         formPanel.add(passwordField, gbc);
 
         add(formPanel, BorderLayout.CENTER);
 
         // Buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 0));
         buttonPanel.setBackground(new Color(42, 45, 53));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(16, 24, 24, 24));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(16, 24, 32, 24)); // Increased bottom padding
 
         cancelButton = new ModernButton("Cancel");
         loginButton = new ModernButton("Login");

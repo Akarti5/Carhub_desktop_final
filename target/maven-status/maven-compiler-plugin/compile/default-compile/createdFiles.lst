@@ -18,6 +18,7 @@ com\carhub\entity\Car$Transmission.class
 com\carhub\ui\panels\ReportsPanel.class
 com\carhub\ui\panels\SalesPanel.class
 com\carhub\service\ClientService.class
+com\carhub\ui\components\ModernPasswordField$1.class
 com\carhub\service\AdminService.class
 com\carhub\ui\dialogs\CarDialog.class
 com\carhub\CarHubApplication.class
@@ -28,6 +29,7 @@ com\carhub\ui\components\ModernTextField$ModernTextFieldBorder.class
 com\carhub\ui\panels\CarsPanel$6.class
 com\carhub\entity\Car$Condition.class
 com\carhub\entity\SystemSetting.class
+com\carhub\ui\components\ModernPasswordField$ModernPasswordFieldBorder.class
 com\carhub\ui\components\MetricCard.class
 com\carhub\entity\Sale.class
 com\carhub\entity\Client$CustomerType.class
@@ -69,6 +71,7 @@ com\carhub\ui\dialogs\SaleDialog$1.class
 com\carhub\ui\panels\CarsPanel$1.class
 com\carhub\ui\panels\ClientsPanel$2.class
 com\carhub\entity\Client$Gender.class
+com\carhub\ui\components\ModernPasswordField.class
 com\carhub\ui\panels\SettingsPanel.class
 com\carhub\ui\components\ModernCard.class
 com\carhub\ui\panels\CarsPanel$4.class
