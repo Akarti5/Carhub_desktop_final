@@ -18,6 +18,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import com.carhub.util.CurrencyUtils;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+import com.toedter.calendar.JDateChooser;
 
 public class CarsPanel extends JPanel implements MainWindow.RefreshablePanel {
 
@@ -27,6 +31,8 @@ public class CarsPanel extends JPanel implements MainWindow.RefreshablePanel {
     private DefaultTableModel tableModel;
     private ModernTextField searchField;
     private JComboBox<String> statusFilter;
+    private JDateChooser fromDateChooser;
+    private JDateChooser toDateChooser;
 
     @Autowired
     private PdfService pdfService;
@@ -95,14 +101,47 @@ public class CarsPanel extends JPanel implements MainWindow.RefreshablePanel {
         statusFilter.setForeground(Color.WHITE);
         statusFilter.addActionListener(e -> filterData());
 
+        // Date range filter
+        fromDateChooser = new JDateChooser();
+        fromDateChooser.setDateFormatString("dd/MM/yyyy");
+        fromDateChooser.getCalendarButton().setText("From");
+        fromDateChooser.addPropertyChangeListener("date", e -> filterData());
+
+        toDateChooser = new JDateChooser();
+        toDateChooser.setDateFormatString("dd/MM/yyyy");
+        toDateChooser.getCalendarButton().setText("To");
+        toDateChooser.addPropertyChangeListener("date", e -> filterData());
+
+        // Add clear date filter button
+        ModernButton clearDateFilterBtn = new ModernButton("Clear Dates");
+        clearDateFilterBtn.addActionListener(e -> {
+            fromDateChooser.setDate(null);
+            toDateChooser.setDate(null);
+            filterData();
+        });
+
         ModernButton refreshBtn = new ModernButton("Refresh");
         refreshBtn.addActionListener(e -> loadData());
 
+        // First row of filters
         searchPanel.add(new JLabel("Search:") {{ setForeground(Color.WHITE); }});
         searchPanel.add(searchField);
         searchPanel.add(new JLabel("Status:") {{ setForeground(Color.WHITE); }});
         searchPanel.add(statusFilter);
         searchPanel.add(refreshBtn);
+
+        // Second row for date range filters
+        JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
+        datePanel.setOpaque(false);
+        
+        datePanel.add(new JLabel("Added From:") {{ setForeground(Color.WHITE); }});
+        datePanel.add(fromDateChooser);
+        datePanel.add(new JLabel("To:") {{ setForeground(Color.WHITE); }});
+        datePanel.add(toDateChooser);
+        datePanel.add(clearDateFilterBtn);
+        
+        searchPanel.add(Box.createHorizontalStrut(20)); // Add some spacing
+        searchPanel.add(datePanel);
 
         // Action buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -180,30 +219,51 @@ public class CarsPanel extends JPanel implements MainWindow.RefreshablePanel {
         try {
             String searchText = searchField.getText().trim();
             String statusText = (String) statusFilter.getSelectedItem();
+            Date fromDate = fromDateChooser.getDate();
+            Date toDate = toDateChooser.getDate();
 
-            List<Car> cars;
-            if (searchText.isEmpty() && "All Status".equals(statusText)) {
-                cars = carService.getAllCars();
-            } else {
-                cars = carService.getAllCars();
-                // Apply filters
-                cars = cars.stream()
-                        .filter(car -> {
-                            boolean matchesSearch = searchText.isEmpty() ||
-                                    car.getBrand().toLowerCase().contains(searchText.toLowerCase()) ||
-                                    car.getModel().toLowerCase().contains(searchText.toLowerCase()) ||
-                                    car.getColor().toLowerCase().contains(searchText.toLowerCase());
+            List<Car> cars = carService.getAllCars();
+            
+            // Apply filters
+            cars = cars.stream()
+                    .filter(car -> {
+                        // Search text filter
+                        boolean matchesSearch = searchText.isEmpty() ||
+                                car.getBrand().toLowerCase().contains(searchText.toLowerCase()) ||
+                                car.getModel().toLowerCase().contains(searchText.toLowerCase()) ||
+                                car.getColor().toLowerCase().contains(searchText.toLowerCase());
 
-                            boolean matchesStatus = "All Status".equals(statusText) ||
-                                    car.getStatus().toString().equals(statusText);
+                        // Status filter
+                        boolean matchesStatus = "All Status".equals(statusText) ||
+                                car.getStatus().toString().equals(statusText);
+                                
+                        // Date range filter
+                        boolean matchesDateRange = true;
+                        if (fromDate != null || toDate != null) {
+                            LocalDate carDate = car.getCreatedAt() != null ? 
+                                car.getCreatedAt().toLocalDate() : 
+                                LocalDate.now();
+                                
+                            if (fromDate != null) {
+                                LocalDate fromLocalDate = fromDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                                matchesDateRange = !carDate.isBefore(fromLocalDate);
+                            }
+                            
+                            if (matchesDateRange && toDate != null) {
+                                LocalDate toLocalDate = toDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                                matchesDateRange = !carDate.isAfter(toLocalDate);
+                            }
+                        }
 
-                            return matchesSearch && matchesStatus;
-                        })
-                        .toList();
-            }
+                        return matchesSearch && matchesStatus && matchesDateRange;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            
             updateTable(cars);
         } catch (Exception e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error filtering cars: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

@@ -25,6 +25,7 @@ com\carhub\entity\Car.class
 com\carhub\entity\Admin.class
 com\carhub\ui\panels\ClientsPanel$4.class
 com\carhub\ui\components\ModernTextField$ModernTextFieldBorder.class
+com\carhub\ui\panels\CarsPanel$6.class
 com\carhub\entity\Car$Condition.class
 com\carhub\entity\SystemSetting.class
 com\carhub\ui\components\MetricCard.class
@@ -42,6 +43,7 @@ com\carhub\entity\Client$ContactMethod.class
 com\carhub\entity\SystemSetting$SettingType.class
 com\carhub\ui\main\NavigationPanel$1.class
 com\carhub\ui\panels\SalesPanel$4.class
+com\carhub\ui\panels\CarsPanel$5.class
 com\carhub\repository\SystemSettingRepository.class
 com\carhub\ui\components\ModernButton.class
 com\carhub\config\ApplicationConfig.class
