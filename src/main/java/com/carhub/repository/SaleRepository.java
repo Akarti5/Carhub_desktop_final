@@ -51,5 +51,19 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     @Query("SELECT s.paymentMethod, COUNT(s) FROM Sale s GROUP BY s.paymentMethod")
     List<Object[]> getSalesCountByPaymentMethod();
     
+    @Query("SELECT EXTRACT(YEAR FROM s.saleDate) as year, EXTRACT(MONTH FROM s.saleDate) as month, SUM(s.salePrice) as revenue " +
+           "FROM Sale s WHERE s.saleDate >= :startDate " +
+           "GROUP BY EXTRACT(YEAR FROM s.saleDate), EXTRACT(MONTH FROM s.saleDate) " +
+           "ORDER BY year DESC, month DESC")
+    List<Object[]> getMonthlyRevenueData(@Param("startDate") LocalDateTime startDate);
+    
+    @Query("SELECT EXTRACT(YEAR FROM s.saleDate) as year, EXTRACT(MONTH FROM s.saleDate) as month, " +
+           "SUM(s.salePrice) as revenue, COUNT(s) as salesCount " +
+           "FROM Sale s WHERE s.saleDate BETWEEN :startDate AND :endDate " +
+           "GROUP BY EXTRACT(YEAR FROM s.saleDate), EXTRACT(MONTH FROM s.saleDate) " +
+           "ORDER BY year DESC, month DESC")
+    List<Object[]> getMonthlyAnalytics(@Param("startDate") LocalDateTime startDate, 
+                                     @Param("endDate") LocalDateTime endDate);
+    
     boolean existsByInvoiceNumber(String invoiceNumber);
 }

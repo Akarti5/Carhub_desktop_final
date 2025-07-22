@@ -64,6 +64,7 @@ com\carhub\repository\ClientRepository.class
 com\carhub\ui\components\ModernTextField$1.class
 com\carhub\ui\panels\SalesPanel$5.class
 com\carhub\ui\main\MainWindow.class
+com\carhub\ui\components\MonthlyRevenueChart.class
 com\carhub\entity\CarImage.class
 com\carhub\ui\components\ModernButton$1.class
 com\carhub\ui\dialogs\LoginDialog.class

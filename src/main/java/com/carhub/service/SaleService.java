@@ -134,4 +134,13 @@ public class SaleService {
     public boolean isInvoiceNumberAvailable(String invoiceNumber) {
         return !saleRepository.existsByInvoiceNumber(invoiceNumber);
     }
+
+    public List<Object[]> getMonthlyRevenueForLast6Months() {
+        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        return saleRepository.getMonthlyRevenueData(sixMonthsAgo);
+    }
+
+    public List<Object[]> getMonthlyAnalytics(LocalDateTime startDate, LocalDateTime endDate) {
+        return saleRepository.getMonthlyAnalytics(startDate, endDate);
+    }
 }

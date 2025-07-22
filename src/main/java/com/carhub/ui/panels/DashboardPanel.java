@@ -7,6 +7,7 @@ import com.carhub.service.ClientService;
 import com.carhub.service.SaleService;
 import com.carhub.ui.components.MetricCard;
 import com.carhub.ui.components.ModernTable;
+import com.carhub.ui.components.MonthlyRevenueChart;
 import com.carhub.ui.main.MainWindow;
 
 import javax.swing.*;
@@ -31,6 +32,7 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
 
     private ModernTable recentSalesTable;
     private ModernTable lowInventoryTable;
+    private MonthlyRevenueChart monthlyRevenueChart;
 
     public DashboardPanel(CarService carService, SaleService saleService, ClientService clientService) {
         this.carService = carService;
@@ -73,18 +75,19 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
         // Add a small gap
         mainContent.add(Box.createVerticalStrut(16));
         
+        // Monthly Revenue Chart - fixed height
+        JPanel chartPanel = createChartPanel();
+        chartPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 320));
+        mainContent.add(chartPanel);
+        
+        // Add a small gap
+        mainContent.add(Box.createVerticalStrut(16));
+        
         // Tables panel - takes remaining space
         JPanel tablesPanel = createTablesPanel();
-        tablesPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        tablesPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
         
-        // Use a scroll pane for the tables if needed
-        JScrollPane scrollPane = new JScrollPane(tablesPanel);
-        scrollPane.setBorder(null);
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.setOpaque(false);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        
-        mainContent.add(scrollPane);
+        mainContent.add(tablesPanel);
         
         // Add everything to the main panel with BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout());
@@ -129,7 +132,7 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
         totalCarsCard = new MetricCard("Total Cars", "0", "In inventory", true);
         totalSalesCard = new MetricCard("Total Sales", "0", "This month", true);
         totalClientsCard = new MetricCard("Total Clients", "0", "Active clients", true);
-        monthlyRevenueCard = new MetricCard("Monthly Revenue", "$0", "Last 6 months", true);
+        monthlyRevenueCard = new MetricCard("Revenue (6M)", "$0", "Last 6 months", true);
 
         metricsPanel.add(totalCarsCard);
         metricsPanel.add(totalSalesCard);
@@ -137,6 +140,24 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
         metricsPanel.add(monthlyRevenueCard);
 
         return metricsPanel;
+    }
+
+    private JPanel createChartPanel() {
+        JPanel chartContainer = new JPanel(new BorderLayout());
+        chartContainer.setBackground(new Color(42, 45, 53));
+        chartContainer.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+
+        JLabel titleLabel = new JLabel("Revenue Overview");
+        titleLabel.setFont(new Font("SF Pro Display", Font.BOLD, 18));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
+
+        monthlyRevenueChart = new MonthlyRevenueChart();
+
+        chartContainer.add(titleLabel, BorderLayout.NORTH);
+        chartContainer.add(monthlyRevenueChart, BorderLayout.CENTER);
+
+        return chartContainer;
     }
 
     private JPanel createTablesPanel() {
@@ -232,19 +253,27 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
             long totalCars = carService.getTotalCarsCount();
             long totalSales = saleService.getTotalSalesCount();
             long totalClients = clientService.getTotalClientsCount();
-            BigDecimal monthlyRevenue = saleService.getMonthlyRevenue();
+            
+            // Calculate total revenue for last 6 months
+            List<Object[]> monthlyData = saleService.getMonthlyRevenueForLast6Months();
+            BigDecimal totalRevenue6Months = monthlyData.stream()
+                .map(data -> (BigDecimal) data[2])
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             // Update metric cards
             totalCarsCard.updateValue(String.valueOf(totalCars));
             totalSalesCard.updateValue(String.valueOf(totalSales));
             totalClientsCard.updateValue(String.valueOf(totalClients));
-            monthlyRevenueCard.updateValue(CurrencyUtils.formatCurrency(monthlyRevenue));
+            monthlyRevenueCard.updateValue(CurrencyUtils.formatCurrency(totalRevenue6Months));
 
             // Load recent sales
             loadRecentSales();
 
             // Load low inventory
             loadLowInventory();
+
+            // Load monthly revenue chart
+            loadMonthlyRevenueChart();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -289,6 +318,15 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
                 };
                 model.addRow(row);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadMonthlyRevenueChart() {
+        try {
+            List<Object[]> monthlyRevenueData = saleService.getMonthlyRevenueForLast6Months();
+            monthlyRevenueChart.updateData(monthlyRevenueData);
         } catch (Exception e) {
             e.printStackTrace();
         }
