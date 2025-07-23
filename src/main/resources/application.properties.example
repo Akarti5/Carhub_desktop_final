@@ -1,7 +1,12 @@
+#READ THIS = Please rename this file to ="application.properties" after Configuration
+
+
+
+
 # Database Configuration
 spring.datasource.url=jdbc:postgresql://localhost:5432/carhub
-spring.datasource.username=postgres
-spring.datasource.password=+++EDDY211006#@#@
+spring.datasource.username=your_postgres_username
+spring.datasource.password=your_postgres_password
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 # Hibernate Configuration
@@ -32,8 +37,8 @@ mail.smtp.host=smtp.gmail.com
 mail.smtp.port=587
 mail.smtp.auth=true
 mail.smtp.starttls.enable=true
-mail.username=sitrakiniainaeddyfrancisco@gmail.com
-mail.password=emmnxztbcczmvtpm
+mail.username=your_email@gmail.com
+mail.password=your_application_password
 
 # File Upload Configuration
 file.upload.directory=./uploads/cars

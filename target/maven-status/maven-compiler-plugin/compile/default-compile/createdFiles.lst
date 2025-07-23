@@ -3,6 +3,7 @@ com\carhub\ui\panels\ClientsPanel$3.class
 com\carhub\ui\components\ModernTable$ModernTableCellRenderer.class
 com\carhub\service\PdfService.class
 com\carhub\entity\Car$Status.class
+com\carhub\service\EmailService.class
 com\carhub\ui\panels\ClientsPanel.class
 com\carhub\ui\dialogs\LoginDialog$1.class
 com\carhub\service\CarService.class
@@ -15,6 +16,7 @@ com\carhub\ui\main\NavigationPanel.class
 com\carhub\ui\panels\DashboardPanel$2.class
 com\carhub\entity\Car$FuelType.class
 com\carhub\entity\Car$Transmission.class
+com\carhub\service\EmailService$1.class
 com\carhub\ui\panels\ReportsPanel.class
 com\carhub\ui\panels\SalesPanel.class
 com\carhub\service\ClientService.class

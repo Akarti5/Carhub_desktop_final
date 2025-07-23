@@ -110,7 +110,7 @@ public class DashboardPanel extends JPanel implements MainWindow.RefreshablePane
         titleLabel.setForeground(Color.WHITE);
 
         JLabel subtitleLabel = new JLabel("Welcome to CarHub - " + LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy")));
-        subtitleLabel.setFont(new Font("SF Pro Text", Font.PLAIN, 16));
+        subtitleLabel.setFont(new Font("SF Pro Text", Font.PLAIN, 13));
         subtitleLabel.setForeground(new Color(161, 161, 170));
 
         titlePanel.add(titleLabel);

@@ -29,8 +29,8 @@ import java.util.List;
 public class PdfService {
 
     private static final String COMPANY_NAME = "CarHub";
-    private static final String COMPANY_ADDRESS = "123 Business Street, Antananarivo, Madagascar";
-    private static final String COMPANY_PHONE = "+261-20-123-4567";
+    private static final String COMPANY_ADDRESS = "carhub Business Street, Fianarantsoa, Madagascar";
+    private static final String COMPANY_PHONE = "+261 34 46 481 31";
     private static final String COMPANY_EMAIL = "info@carhub.com";
 
     public String generateCarsInventoryReport(List<Car> cars, String outputPath) throws Exception {

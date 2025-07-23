@@ -23,6 +23,9 @@ public class SaleService {
     @Autowired
     private CarService carService;
 
+    @Autowired
+    private EmailService emailService;
+
     public Sale createSale(Sale sale) {
         // Generate invoice number if not provided
         if (sale.getInvoiceNumber() == null || sale.getInvoiceNumber().isEmpty()) {
@@ -34,7 +37,16 @@ public class SaleService {
             carService.markCarAsSold(sale.getCar().getId());
         }
 
-        return saleRepository.save(sale);
+        Sale savedSale = saleRepository.save(sale);
+        
+        // Send confirmation email to client
+        try {
+            emailService.sendSaleConfirmationEmail(savedSale);
+        } catch (Exception e) {
+            System.err.println("Failed to send sale confirmation email: " + e.getMessage());
+        }
+
+        return savedSale;
     }
 
     public Sale updateSale(Sale sale) {
